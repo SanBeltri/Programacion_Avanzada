@@ -1,0 +1,39 @@
+/* assets/style.css */
+/* Base styles and utility classes, augmented by Tailwind CSS */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom styles for modals/overlays if needed, but Tailwind is preferred */
+#loanDetailModal {
+    z-index: 1000; /* Ensure modal is on top */
+}
+
+#modalContent {
+    transition: all 0.3s ease-out;
+}
+
+/* General button styling, applied via Tailwind classes in HTML */
+.btn-primary {
+    @apply py-2 px-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition duration-150 ease-in-out;
+}
+
+.btn-danger {
+    @apply py-2 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-md transition duration-150 ease-in-out;
+}
+
+.btn-success {
+    @apply py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-md transition duration-150 ease-in-out;
+}
+
+/* Card styling */
+.loan-card {
+    @apply bg-white p-6 rounded-lg shadow-md border border-gray-200;
+}

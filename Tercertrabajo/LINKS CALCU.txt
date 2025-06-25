@@ -1,0 +1,9 @@
+http://localhost/Trabajo3/actualizar.php?ID=2&operacion=resta&Dato1=10&Dato2=4&Resultado=6
+
+
+http://localhost/Trabajo3/eliminar.php?ID=2
+
+
+
+
+http://localhost/Trabajo3/ver_operaciones.php

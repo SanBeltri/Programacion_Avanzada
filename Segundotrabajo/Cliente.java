@@ -1,0 +1,33 @@
+import java.util.Scanner;
+
+public class Cliente {
+    public static void main(String[] args) {
+        Computador pc;
+        Tecnico tecnico = new Tecnico();
+        Scanner entrada = new Scanner(System.in);
+
+        System.out.println("Seleccione el tipo de computador:");
+        System.out.println("1. Gamer");
+        System.out.println("2. Oficina");
+        System.out.println("3. Servidor");
+
+        int opcion = entrada.nextInt();
+
+        if(opcion == 1) {
+            System.out.println("Has seleccionado un computador Gamer.");
+            pc = tecnico.ensamblarComputador(new FabricaGamer());
+        } else if(opcion == 2) {
+            System.out.println("Has seleccionado un computador de Oficina.");
+            pc = tecnico.ensamblarComputador(new FabricaOficina());
+        } else if(opcion == 3) {
+            System.out.println("Has seleccionado un computador Servidor.");
+            pc = tecnico.ensamblarComputador(new FabricaServidor());
+        } else {
+            System.out.println("Opción inválida.");
+            return;
+        }
+
+        pc.ensamblar();
+    }
+}
+

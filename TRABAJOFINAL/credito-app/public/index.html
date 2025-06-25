@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Crédito Hipotecario - Login</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Iniciar Sesión</h1>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                <input type="text" id="username" name="username" required
+                       class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <input type="password" id="password" name="password" required
+                       class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out">
+            </div>
+            <button type="submit"
+                    class="w-full py-3 px-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-md">
+                Entrar
+            </button>
+        </form>
+
+        <div id="message" class="mt-6 p-4 text-sm text-center rounded-lg hidden" role="alert"></div>
+    </div>
+
+    <script src="assets/app.js"></script>
+    <script>
+        // Lógica específica para el login en index.html
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const messageDiv = document.getElementById('message');
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+
+                    try {
+                        const response = await fetch('/credito-app/api/auth', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password })
+
+                        });
+
+                        const data = await response.json();
+                          
+                        if (response.ok) {
+                            messageDiv.textContent = data.message;
+                            messageDiv.className = 'mt-6 p-4 text-sm text-center rounded-lg bg-green-100 text-green-700';
+                            // Redirigir según el rol
+                          
+                                switch (data.user.role) {
+                                    case 'cliente':
+                                        window.location.href = 'cliente.html';
+                                        break;
+                                    case 'asesor':
+                                        window.location.href = 'asesor.html';
+                                        break;
+                                    case 'subgerente':
+                                        window.location.href = 'subgerente.html';
+                                        break;
+                                    case 'gerente':
+                                        window.location.href = 'gerente.html';
+                                        break;
+                                    default:
+                                        window.location.href = 'index.html'; // Fallback
+                                }
+                          
+                        } else {
+                            messageDiv.textContent = data.message || 'Error al iniciar sesión.';
+                            messageDiv.className = 'mt-6 p-4 text-sm text-center rounded-lg bg-red-100 text-red-700';
+                            messageDiv.classList.remove('hidden');
+                        }
+                    } catch (error) {
+                        messageDiv.textContent = 'Error de conexión. Intente de nuevo.';
+                        messageDiv.className = 'mt-6 p-4 text-sm text-center rounded-lg bg-red-100 text-red-700';
+                        messageDiv.classList.remove('hidden');
+                        console.error('Error:', error);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

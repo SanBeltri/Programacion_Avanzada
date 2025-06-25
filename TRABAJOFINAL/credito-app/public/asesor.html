@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesor - Crédito Hipotecario</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-indigo-600 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Panel de Asesor</h1>
+        <div class="flex items-center space-x-4">
+            <span id="welcomeMessage" class="text-lg"></span>
+            <button id="logoutBtn" class="py-2 px-4 rounded-lg bg-red-500 hover:bg-red-600 transition duration-150 ease-in-out shadow-md">
+                Cerrar Sesión
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <div class="bg-white p-8 rounded-2xl shadow-xl mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Créditos Asignados o Pendientes de Asesoría</h2>
+            <div id="loansList" class="space-y-4">
+                <!-- Los créditos se cargarán aquí -->
+            </div>
+            <p id="noLoansMessage" class="text-gray-600 text-center hidden">No hay créditos pendientes de tu gestión.</p>
+        </div>
+
+        <div id="loanDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Detalle y Gestión de Crédito</h3>
+                    <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                </div>
+                <form id="loanUpdateForm" class="space-y-4">
+                    <input type="hidden" id="loanId">
+                    <p class="text-gray-700"><strong>Cliente:</strong> <span id="modalClientUsername"></span></p>
+                    <p class="text-gray-700"><strong>Monto:</strong> <span id="modalAmount"></span></p>
+                    <p class="text-gray-700"><strong>Plazo:</strong> <span id="modalTerm"></span> meses</p>
+                    <p class="text-gray-700"><strong>Estado Actual:</strong> <span id="modalStatus" class="font-semibold text-indigo-600"></span></p>
+                    <p class="text-gray-700" id="modalDocument"></p>
+                    <p class="text-gray-700"><strong>Notas del Cliente:</strong> <span id="modalClientNotes"></span></p>
+
+                    <div>
+                        <label for="advisor_notes" class="block text-sm font-medium text-gray-700 mb-1">Tus Notas como Asesor</label>
+                        <textarea id="advisor_notes" rows="4" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div id="actionButtons" class="flex justify-end space-x-4 mt-6">
+                        <button type="submit" id="submitUpdateBtn"
+                                class="py-2 px-6 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition duration-150 ease-in-out">
+                            Enviar a Subgerente
+                        </button>
+                    </div>
+                    <div id="updateMessage" class="mt-4 p-3 text-sm text-center rounded-lg hidden" role="alert"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+       <script src="../assets/app.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const loansList = document.getElementById('loansList');
+            const noLoansMessage = document.getElementById('noLoansMessage');
+            const loanDetailModal = document.getElementById('loanDetailModal');
+            const modalContent = document.getElementById('modalContent');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const loanUpdateForm = document.getElementById('loanUpdateForm');
+            const updateMessage = document.getElementById('updateMessage');
+
+            let currentLoanId = null;
+
+            // Función para verificar autenticación y cargar datos del usuario
+            async function checkAuthAndLoadData() {
+                const auth = await App.checkAuth();
+                if (!auth.isAuthenticated || auth.user.role !== 'asesor') {
+                    window.location.href = 'index.html'; // Redirigir al login
+                    return;
+                }
+                welcomeMessage.textContent = `Bienvenido, ${auth.user.username} (${auth.user.role})`;
+                loadLoans();
+            }
+
+            // Cargar créditos relevantes para el asesor
+            async function loadLoans() {
+                try {
+                    const response = await fetch('/credito-app/api/creditos');
+                    const loans = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(loans.message || 'Error al cargar créditos.');
+                    }
+
+                    loansList.innerHTML = '';
+                    if (loans.length === 0) {
+                        noLoansMessage.classList.remove('hidden');
+                        return;
+                    } else {
+                        noLoansMessage.classList.add('hidden');
+                    }
+
+                    loans.forEach(loan => {
+                        const loanCard = document.createElement('div');
+                        loanCard.className = 'bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200 cursor-pointer hover:bg-gray-100 transition duration-150 ease-in-out';
+                        loanCard.innerHTML = `
+                            <h3 class="text-lg font-bold text-indigo-700">Crédito #${loan.id} - Cliente: ${loan.client_username}</h3>
+                            <p class="text-gray-700">Monto: <span class="font-semibold">$${parseFloat(loan.amount).toLocaleString()}</span></p>
+                            <p class="text-gray-700">Plazo: <span class="font-semibold">${loan.term} meses</span></p>
+                            <p class="text-gray-700">Estado: <span class="font-semibold text-indigo-600">${App.translateStatus(loan.status)}</span></p>
+                            <p class="text-gray-500 text-xs mt-2">Solicitado el: ${new Date(loan.created_at).toLocaleString()}</p>
+                        `;
+                        loanCard.addEventListener('click', () => openLoanDetail(loan));
+                        loansList.appendChild(loanCard);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar los créditos:', error);
+                    loansList.innerHTML = `<p class="text-red-500 text-center">Error al cargar las solicitudes: ${error.message}</p>`;
+                    noLoansMessage.classList.add('hidden');
+                }
+            }
+
+            // Abrir modal de detalle y edición del crédito
+            function openLoanDetail(loan) {
+                currentLoanId = loan.id;
+                document.getElementById('loanId').value = loan.id;
+                document.getElementById('modalClientUsername').textContent = loan.client_username;
+                document.getElementById('modalAmount').textContent = `$${parseFloat(loan.amount).toLocaleString()}`;
+                document.getElementById('modalTerm').textContent = loan.term;
+                document.getElementById('modalStatus').textContent = App.translateStatus(loan.status);
+                document.getElementById('modalClientNotes').textContent = loan.client_notes || 'N/A';
+                document.getElementById('advisor_notes').value = loan.advisor_notes || '';
+                if (!loan.document_path) {
+                    document.getElementById('modalDocument').innerHTML = '<p class="text-gray-600 text-sm">Documento: <span class="text-red-500">No disponible</span></p>';
+                } else{
+                  document.getElementById('modalDocument').innerHTML = `<p class="text-gray-600 text-sm">Documento: <a href="/credito-app/${loan.document_path}" target="_blank" class="text-blue-500 hover:underline">Ver documento</a></p>` 
+                }
+
+                // Habilitar/deshabilitar campos según el estado y rol
+                const advisorNotesField = document.getElementById('advisor_notes');
+                const submitButton = document.getElementById('submitUpdateBtn');
+
+                if (loan.status === 'pending_asesor') {
+                    advisorNotesField.disabled = false;
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Enviar a Subgerente';
+                    submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    advisorNotesField.disabled = true;
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Ya gestionado';
+                    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+
+                updateMessage.classList.add('hidden'); // Ocultar mensajes anteriores
+
+                loanDetailModal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                }, 50); // Pequeño retraso para la transición
+            }
+
+            // Cerrar modal
+            closeModalBtn.addEventListener('click', () => {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    loanDetailModal.classList.add('hidden');
+                }, 300); // Coincide con la duración de la transición
+            });
+
+            // Enviar actualización del crédito por el asesor
+            loanUpdateForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentLoanId) return;
+
+                const advisor_notes = document.getElementById('advisor_notes').value;
+
+                try {
+                    const response = await fetch(`/credito-app/api/creditos/${currentLoanId}`, { // Ruta con ID
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ advisor_notes, status: 'pending_subgerente' })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        updateMessage.textContent = data.message;
+                        updateMessage.className = 'mt-4 p-3 text-sm text-center rounded-lg bg-green-100 text-green-700';
+                        loadLoans(); // Recargar la lista para reflejar el cambio de estado
+                        // Deshabilitar formulario después de enviar
+                        document.getElementById('advisor_notes').disabled = true;
+                        document.getElementById('submitUpdateBtn').disabled = true;
+                        document.getElementById('submitUpdateBtn').textContent = 'Ya enviado';
+                        document.getElementById('submitUpdateBtn').classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        updateMessage.textContent = data.message || 'Error al actualizar el crédito.';
+                        updateMessage.className = 'mt-4 p-3 text-sm text-center rounded-lg bg-red-100 text-red-700';
+                    }
+                    updateMessage.classList.remove('hidden');
+                } catch (error) {
+                    updateMessage.textContent = 'Error de conexión. Intente de nuevo.';
+                    updateMessage.className = 'mt-4 p-3 text-sm text-center rounded-lg bg-red-100 text-red-700';
+                    updateMessage.classList.remove('hidden');
+                    console.error('Error:', error);
+                }
+            });
+
+            // Event listener para cerrar sesión
+            logoutBtn.addEventListener('click', async () => {
+                await App.logout();
+                window.location.href = 'index.html';
+            });
+
+            checkAuthAndLoadData();
+        });
+    </script>
+</body>
+</html>

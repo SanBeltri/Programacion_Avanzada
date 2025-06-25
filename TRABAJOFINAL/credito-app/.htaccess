@@ -1,0 +1,13 @@
+# .htaccess
+# Este archivo redirige todas las solicitudes no existentes a index.php
+# lo que permite que el index.php actúe como un enrutador para las APIs.
+
+RewriteEngine On
+
+# Si el archivo o directorio solicitado existe, no hacer nada.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# De lo contrario, redirigir la solicitud a index.php para ser manejada por el router.
+RewriteRule ^(.*)$ index.php [L,QSA]
+
