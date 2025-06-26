@@ -1,9 +1,9 @@
 <?php
 include 'conexion.php';
 
-$id = $_GET['id'];
+$ID = $_GET['ID'];
 
-$query = "DELETE FROM operaciones WHERE id = $id";
+$query = "DELETE FROM calculadora WHERE ID = $ID";
 obtenerResultado($query);
 
 echo json_encode(["mensaje" => "Registro eliminado"]);

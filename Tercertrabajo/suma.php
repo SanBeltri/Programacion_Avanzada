@@ -1,12 +1,12 @@
 <?php
 include 'conexion.php';
 
-$n1 = $_GET['n1'];
-$n2 = $_GET['n2'];
-$resultado = $n1 + $n2;
+$a = $_GET['a'];
+$b = $_GET['b'];
+$resultado = $a + $b;
 
-$query = "INSERT INTO operaciones (operacion, valor1, valor2, resultado)
-          VALUES ('suma', $n1, $n2, $resultado)";
+$query = "INSERT INTO calculadora (operacion, Dato1, Dato2, Resultado)
+          VALUES ('suma', $a, $b, $resultado)";
 obtenerResultado($query);
 
 echo json_encode(["operacion" => "suma", "resultado" => $resultado]);

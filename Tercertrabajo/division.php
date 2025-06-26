@@ -1,18 +1,18 @@
 <?php
 include 'conexion.php';
 
-$n1 = $_GET['n1'];
-$n2 = $_GET['n2'];
+$a = $_GET['b'];
+$b = $_GET['a'];
 
-if ($n2 == 0) {
+if ($b == 0) {
     echo json_encode(["error" => "No se puede dividir por cero"]);
     exit();
 }
 
-$resultado = $n1 / $n2;
+$resultado = $a / $b;
 
-$query = "INSERT INTO operaciones (operacion, valor1, valor2, resultado)
-          VALUES ('division', $n1, $n2, $resultado)";
+$query = "INSERT INTO calculadora (operacion, Dato1, Dato2, Resultado)
+          VALUES ('division', $a, $b, $resultado)";
 obtenerResultado($query);
 
 echo json_encode(["operacion" => "division", "resultado" => $resultado]);

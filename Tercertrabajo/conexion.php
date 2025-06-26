@@ -2,7 +2,7 @@
 header("Content-type: text/html; charset=utf-8");
 
 function obtenerResultado($query){
-    $mysqli = new mysqli("localhost", "root", "", "calculadora");
+    $mysqli = new mysqli("localhost", "root", "", "trabajo3");
 
     if ($mysqli->connect_error) {
         die("Error de conexión: " . $mysqli->connect_error);
